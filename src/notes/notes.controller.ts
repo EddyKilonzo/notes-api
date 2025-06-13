@@ -8,19 +8,31 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  ConflictException,
 } from '@nestjs/common';
 import { NotesService } from './notes.services';
 import { CreateNotesDto } from './dto/create.notes.dto';
 import { UpdateNoteDto } from './dto/update.notes.dto';
 import { ApiResponse } from 'shared/api-response';
 import { Note } from './interface/notes.interface';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse as SwaggerApiResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('Notes')
 @Controller('notes')
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
-  @Post('')
+  @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a new note' })
+  @SwaggerApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Note created successfully',
+  })
   async create(
     @Body() createNoteDto: CreateNotesDto,
   ): Promise<ApiResponse<Note>> {
@@ -32,6 +44,13 @@ export class NotesController {
         data: note,
       };
     } catch (error) {
+      if (error instanceof ConflictException) {
+        return {
+          success: false,
+          message: error.message,
+          errors: 'Duplicate note',
+        };
+      }
       return {
         success: false,
         message: 'Failed to create note',
@@ -41,6 +60,11 @@ export class NotesController {
   }
 
   @Get('')
+  @ApiOperation({ summary: 'Get all notes' })
+  @SwaggerApiResponse({
+    status: HttpStatus.OK,
+    description: 'Notes retrieved successfully',
+  })
   async findAll(): Promise<ApiResponse<Note[]>> {
     try {
       const notes = await this.notesService.findAll();
@@ -59,6 +83,15 @@ export class NotesController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get a note by ID' })
+  @SwaggerApiResponse({
+    status: HttpStatus.OK,
+    description: 'Note retrieved successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Note not found',
+  })
   async findOne(@Param('id') id: string): Promise<ApiResponse<Note>> {
     try {
       const note = await this.notesService.findOne(id);
@@ -76,6 +109,15 @@ export class NotesController {
     }
   }
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a note by ID' })
+  @SwaggerApiResponse({
+    status: HttpStatus.OK,
+    description: 'Note updated successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Note not found',
+  })
   async update(
     @Param('id') id: string,
     @Body() updateNoteDto: UpdateNoteDto,
@@ -97,6 +139,15 @@ export class NotesController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a note by ID' })
+  @SwaggerApiResponse({
+    status: HttpStatus.OK,
+    description: 'Note deleted successfully',
+  })
+  @SwaggerApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Note not found',
+  })
   async delete(@Param('id') id: string): Promise<ApiResponse<void>> {
     try {
       await this.notesService.delete(id);

@@ -5,25 +5,23 @@ POST {{baseUrl}}/notes
 Content-Type: application/json
 
 {
-    "title": "Note 1",
-    "description": "This is note 1"
+    "title": "Note 2",
+    "content": "This is note 2"
 }
 
 ###Get all notes
 GET {{baseUrl}}/notes
 
 ###Get note by id
-GET {{baseUrl}}/notes/
+GET {{baseUrl}}/notes/4904ae1c-97ae-454f-8bb4-ffb7335ceb43
 
-
-##update note
-PUT {{baseUrl}}/notes/
+###update note
+PATCH {{baseUrl}}/notes/4904ae1c-97ae-454f-8bb4-ffb7335ceb43
 Content-Type: application/json
 
 {
-    "title": "Note 2",
-    "description": "This is note 2"
+    "title": "Note 3",
+    "content": "This is note 2"
 }
-
 ###Delete note
-DELETE {{baseUrl}}/notes/
+DELETE {{baseUrl}}/notes/4904ae1c-97ae-454f-8bb4-ffb7335ceb43
