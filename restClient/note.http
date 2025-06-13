@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:3000
+
+###Create new note
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Note 1",
+    "description": "This is note 1"
+}
+
+###Get all notes
+GET {{baseUrl}}/notes
+
+###Get note by id
+GET {{baseUrl}}/notes/
+
+
+##update note
+PUT {{baseUrl}}/notes/
+Content-Type: application/json
+
+{
+    "title": "Note 2",
+    "description": "This is note 2"
+}
+
+###Delete note
+DELETE {{baseUrl}}/notes/
