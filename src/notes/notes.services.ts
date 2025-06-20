@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateNotesDto } from './dto/create.notes.dto';
 import { Pool } from 'pg';
 import { Note } from './interface/notes.interface';
 import { v4 as uuidv4 } from 'uuid';
 import { UpdateNoteDto } from './dto/update.notes.dto';
-import { ConnectionService } from 'database/connection.service';
+import { ConnectionService } from '../../database/connection.service';
 
 @Injectable()
 export class NotesService {
@@ -14,7 +14,7 @@ export class NotesService {
     return this.connectionService.getPool();
   }
 
-  async create(data: CreateNotesDto): Promise<Note> {
+  async create(data: CreateNotesDto, userId: number): Promise<Note> {
     const id = uuidv4();
     const createdAt = new Date();
 
@@ -29,8 +29,8 @@ export class NotesService {
     }
     try {
       console.log('Creating note...');
-      const query = `INSERT INTO notes (id, title, content, created_at) VALUES ($1, $2, $3, $4) RETURNING *`;
-      const params = [id, data.title, data.content, createdAt];
+      const query = `INSERT INTO notes (id, title, content, created_at, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
+      const params = [id, data.title, data.content, createdAt, userId];
       const result = await this.pool.query(query, params);
       console.log(`Created note with ID: ${data.title}`);
       return result.rows[0] as Note;
@@ -44,10 +44,11 @@ export class NotesService {
     }
   }
 
-  async findAll(): Promise<Note[]> {
+  async findAll(userId: number): Promise<Note[]> {
     try {
-      const query = 'SELECT * FROM notes';
-      const result = await this.pool.query(query);
+      const query =
+        'SELECT * FROM notes WHERE user_id = $1 ORDER BY created_at DESC';
+      const result = await this.pool.query(query, [userId]);
       return result.rows as Note[];
     } catch (error) {
       if (error instanceof Error) {
@@ -57,12 +58,13 @@ export class NotesService {
       }
     }
   }
-  async findOne(id: string): Promise<Note> {
+
+  async findOne(id: string, userId: number): Promise<Note> {
     try {
-      const query = 'SELECT * FROM notes WHERE id = $1';
-      const result = await this.pool.query(query, [id]);
+      const query = 'SELECT * FROM notes WHERE id = $1 AND user_id = $2';
+      const result = await this.pool.query(query, [id, userId]);
       if (result.rows.length === 0) {
-        throw new Error('Note not found');
+        throw new NotFoundException('Note not found');
       }
       return result.rows[0] as Note;
     } catch (error) {
@@ -73,7 +75,8 @@ export class NotesService {
       }
     }
   }
-  async update(id: string, data: UpdateNoteDto): Promise<Note> {
+
+  async update(id: string, data: UpdateNoteDto, userId: number): Promise<Note> {
     const existingNote = await this.pool.query(
       `SELECT * FROM notes WHERE title = $1 AND content = $2`,
       [data.title, data.content],
@@ -84,12 +87,16 @@ export class NotesService {
       );
     }
     try {
-      const query = `UPDATE notes SET title = $1, content = $2 WHERE id = $3 RETURNING *`;
+      const query = `UPDATE notes SET title = $1, content = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 AND user_id = $4 RETURNING *`;
       const result = await this.pool.query(query, [
         data.title,
         data.content,
         id,
+        userId,
       ]);
+      if (result.rows.length === 0) {
+        throw new NotFoundException('Note not found');
+      }
       return result.rows[0] as Note;
     } catch (error) {
       if (error instanceof Error) {
@@ -99,10 +106,14 @@ export class NotesService {
       }
     }
   }
-  async delete(id: string): Promise<void> {
+
+  async delete(id: string, userId: number): Promise<void> {
     try {
-      const query = 'DELETE FROM notes WHERE id = $1';
-      await this.pool.query(query, [id]);
+      const query = 'DELETE FROM notes WHERE id = $1 AND user_id = $2';
+      const result = await this.pool.query(query, [id, userId]);
+      if (result.rowCount === 0) {
+        throw new NotFoundException('Note not found');
+      }
     } catch (error) {
       if (error instanceof Error) {
         throw new Error('Failed to delete note');
