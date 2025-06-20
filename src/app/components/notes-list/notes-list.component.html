@@ -1,0 +1,50 @@
+<div class="notes-container">
+  <div *ngIf="message" class="notification-message" [ngClass]="'notification-' + messageType">
+    {{ message }}
+  </div>
+
+  <div class="notes-header">
+    <div class="header-content">
+      <h1 class="notes-title">My Notes</h1>
+      <p class="user-welcome">Welcome, {{ currentUser }}!</p>
+    </div>
+    <button class="logout-button" (click)="logout()">Logout</button>
+  </div>
+  
+  
+  <div class="add-note-section">
+    <h3 class="section-title">Add New Note</h3>
+    <div class="form-group">
+      <input 
+        type="text" 
+        placeholder="Note title" 
+        [(ngModel)]="newNote.title"
+        class="note-title-input"
+      >
+    </div>
+    <div class="form-group">
+      <textarea 
+        placeholder="Note content" 
+        [(ngModel)]="newNote.content"
+        class="note-content-input"
+      ></textarea>
+    </div>
+    <button class="add-note-button" (click)="addNote()">Add Note</button>
+  </div>
+
+  
+  <div class="notes-section">
+    <h3 class="section-title">Your Notes</h3>
+    <div class="notes-grid">
+      <div *ngFor="let note of notes" class="note-card">
+        <h4 class="note-title">{{ note.title }}</h4>
+        <p class="note-content">{{ note.content }}</p>
+        <button class="delete-note-button" (click)="deleteNote(note.id!)">Delete</button>
+      </div>
+    </div>
+    
+    <div *ngIf="notes.length === 0" class="empty-state">
+       Add your first note above!
+    </div>
+  </div>
+</div> 
