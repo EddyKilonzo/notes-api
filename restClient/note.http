@@ -1,0 +1,27 @@
+@baseUrl = http://localhost:3000
+
+###Create new note
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "title": "Note 2",
+    "content": "This is note 2"
+}
+
+###Get all notes
+GET {{baseUrl}}/notes
+
+###Get note by id
+GET {{baseUrl}}/notes/4904ae1c-97ae-454f-8bb4-ffb7335ceb43
+
+###update note
+PATCH {{baseUrl}}/notes/4904ae1c-97ae-454f-8bb4-ffb7335ceb43
+Content-Type: application/json
+
+{
+    "title": "Note 3",
+    "content": "This is note 2"
+}
+###Delete note
+DELETE {{baseUrl}}/notes/4904ae1c-97ae-454f-8bb4-ffb7335ceb43
